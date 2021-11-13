@@ -35,22 +35,11 @@ std::string trim(const std::string& s)
 	return ltrim(rtrim(s));
 }
 
-void logger(const std::string& message) 
-{
-	std::cout << "---------- " << message << std::endl;
-}
-
-void fails(const char* message, const char* context = "Unknown context")
-{
-	std::cerr << context << ": " << message << std::endl;
-}
-
 bool read_file(const std::string& path, std::vector<std::string>& all_lines)
 {
 	std::ifstream ifs{ path };
 	if (!ifs.is_open())
 	{
-		fails("Not opened input", "read_file");
 		return false;
 	}
 
@@ -60,10 +49,9 @@ bool read_file(const std::string& path, std::vector<std::string>& all_lines)
 		all_lines.push_back(str_line);
 	}
 
-
 	if (ifs.fail() && !ifs.eof())
 	{
-		fails("Fail", "read_file");
+		return false;
 	}
 
 	if (ifs.eof())
@@ -72,7 +60,6 @@ bool read_file(const std::string& path, std::vector<std::string>& all_lines)
 	}
 	else
 	{
-		fails("Not eof", "read_file");
 		return false;
 	}
 }
@@ -272,12 +259,12 @@ void append_command(std::vector<std::string>& all_lines, bool& changed, int line
 	}
 }
 
-void write_command(std::vector<std::string>& all_lines, bool& changed, const std::string& path)
+bool write_command(std::vector<std::string>& all_lines, bool& changed, const std::string& path)
 {
 	std::ofstream ofs = open_out_stram(path);
 	if (!ofs.is_open())
 	{
-		fails("Not opened output", "main");
+		return false;
 	}
 
 	for (size_t i = 0; i < all_lines.size(); i++)
@@ -287,6 +274,8 @@ void write_command(std::vector<std::string>& all_lines, bool& changed, const std
 
 	changed = false;
 	ofs.close();
+
+	return true;
 }
 
 void delete_command(std::vector<std::string>& all_lines, bool& changed, int start, int end)
@@ -318,6 +307,130 @@ void change_command(std::vector<std::string>& all_lines, bool& changed, int star
 	append_command(all_lines, changed, start - 1);
 }
 
+bool one_character_commands_handler(std::vector<std::string>& all_lines, bool& changed, std::string& lr_trimmed_whole)
+{
+	if (lr_trimmed_whole == "a")
+	{
+		append_command(all_lines, changed);
+		return true;
+	}
+	if (lr_trimmed_whole == "p")
+	{
+		print_command(all_lines, 1, int(all_lines.size()));
+		return true;
+	}
+	if (lr_trimmed_whole == "d")
+	{
+		delete_command(all_lines, changed, 1, int(all_lines.size()));
+		return true;
+	}
+	if (lr_trimmed_whole == "c")
+	{
+		change_command(all_lines, changed, 1, int(all_lines.size()));
+		return true;
+	}
+
+	return false;
+}
+
+void append_handler(std::vector<std::string>& all_lines, bool& changed, bool command_and_range_only, std::string& first_token, std::string& other_tokens, std::string& trimmed_whole_without_command)
+{
+	// -1 = whole file
+	// -2 unsupported range
+	int first_line = -1;
+	int last_line = -1;
+
+	if (line_number_extractor(first_token, first_line, last_line))
+	{
+		if (command_and_range_only)
+		{
+			append_command(all_lines, changed, first_line);
+		}
+		else
+		{
+			// One-liner true
+			append_command_oneliner(all_lines, changed, other_tokens, first_line);
+		}
+	}
+	else
+	{
+		// One-liner error of range
+		append_command_oneliner(all_lines, changed, trimmed_whole_without_command);
+	}
+}
+
+void change_handler(std::vector<std::string>& all_lines, bool& changed, bool command_and_range_only, std::string& first_token, std::string& other_tokens, std::string& trimmed_whole_without_command)
+{
+
+	// -1 = whole file
+	// -2 unsupported range
+	int first_line = -1;
+	int last_line = -1;
+
+	if (range_extractor(first_token, first_line, last_line) && first_line != 0)
+	{
+		if (first_line == -1)
+		{
+			first_line = 1;
+		}
+
+		if (last_line == -1)
+		{
+			last_line = int(all_lines.size());
+		}
+
+		if (command_and_range_only)
+		{
+			change_command(all_lines, changed, first_line, last_line);
+		}
+		else
+		{
+			// One-liner true
+			change_command_oneliner(all_lines, changed, other_tokens, first_line, last_line);
+		}
+	}
+	else
+	{
+		// One-liner error of range
+		change_command_oneliner(all_lines, changed, trimmed_whole_without_command, 1, int(all_lines.size()));
+	}
+}
+
+void print_delete_handler(std::vector<std::string>& all_lines, bool& changed, std::string& first_token, std::string& command_letter)
+{
+	// -1 = whole file
+	// -2 unsupported range
+	int first_line = -1;
+	int last_line = -1;
+
+	if (range_extractor(first_token, first_line, last_line))
+	{
+		if (first_line == -1)
+		{
+			first_line = 1;
+		}
+
+		if (last_line == -1)
+		{
+			last_line = int(all_lines.size());
+		}
+	}
+	else
+	{
+		std::cout << "Invalid range" << std::endl;
+	}
+
+	if (command_letter == "p")
+	{
+		print_command(all_lines, first_line, last_line);
+	}
+
+	if (command_letter == "d")
+	{
+		delete_command(all_lines, changed, first_line, last_line);
+	}
+}
+
 void read_command(std::vector<std::string>& all_lines, const std::string& path)
 {
 	bool changed = false;
@@ -327,7 +440,6 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 
 		std::string raw_command;
 		std::getline(std::cin, raw_command);
-		logger(raw_command);
 
 		std::string l_trimmed_whole = ltrim(raw_command);
 		std::string lr_trimmed_whole = trim(raw_command);
@@ -339,11 +451,6 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 		}
 		else if (lr_trimmed_whole.size() == 1)
 		{
-			logger("1 letter command");
-			if (lr_trimmed_whole == "w")
-			{
-				write_command(all_lines, changed, path);
-			}
 			if (lr_trimmed_whole == "q")
 			{
 				if (changed)
@@ -356,27 +463,22 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 					return;
 				}
 			}
-			if (lr_trimmed_whole == "a")
+
+			if (lr_trimmed_whole == "w")
 			{
-				append_command(all_lines, changed);
+				if(!write_command(all_lines, changed, path))
+				{
+					std::cout << "Unable to open file" << std::endl;
+				}
 				continue;
 			}
-			if (lr_trimmed_whole == "p")
+
+			if (!one_character_commands_handler(all_lines, changed, lr_trimmed_whole))
 			{
-				print_command(all_lines, 1, int(all_lines.size()));
+				std::cout << "Unsupported command" << std::endl;
 				continue;
 			}
-			if (lr_trimmed_whole == "d")
-			{
-				delete_command(all_lines, changed, 1, int(all_lines.size()));
-				continue;
-			}
-			if (lr_trimmed_whole == "c")
-			{
-				change_command(all_lines, changed, 1, int(all_lines.size()));
-				continue;
-			}
-			std::cout << "Unsupported command" << std::endl;
+			
 		}
 		else if (lr_trimmed_whole == "q!")
 		{
@@ -384,8 +486,6 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 		}
 		else
 		{
-			logger("multiple letters command");
-
 			std::string command_letter = l_trimmed_whole.substr(0, 2);
 			command_letter = trim(command_letter);
 
@@ -409,93 +509,34 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 				other_tokens = trimmed_whole_without_command.substr(first_space + 1, trimmed_whole_without_command.size());
 			}
 
-			std::string trimmed_other_tokens = trim(other_tokens);
+			std::string full_trimmed_other_tokens = trim(other_tokens);
+
+			// If whitespaces after range shouldnt be ignored, comment following line of code.
+			// If whitespaces on the right should be deleted too, change ltrim to trim.
+			other_tokens = ltrim(other_tokens);
+
 			std::string first_token = trimmed_whole_without_command.substr(0, first_space);
 
-			if (trimmed_other_tokens == "")
+			bool command_and_range_only = false;
+			if (full_trimmed_other_tokens == "")
 			{
-				// Only command and range
-				
-				// -1 = whole file
-				// -2 unsupported range
-				int first_line = -1;
-				int last_line = -1;
+				command_and_range_only = true;
+			}
 
-				if (command_letter == "a")
-				{
-					if (line_number_extractor(first_token, first_line, last_line))
-					{
-						append_command(all_lines, changed, first_line);
-						continue;
-					}
-					else
-					{
-						// One-liner error of range
-						append_command_oneliner(all_lines, changed, trimmed_whole_without_command);
-						continue;
-					}
-				}
-				else if (command_letter == "c")
-				{
-					if (range_extractor(first_token, first_line, last_line) && first_line != 0)
-					{
-						if (first_line == -1)
-						{
-							first_line = 1;
-						}
-
-						if (last_line == -1)
-						{
-							last_line = int(all_lines.size());
-						}
-
-						change_command(all_lines, changed, first_line, last_line);
-						continue;
-					}
-					else
-					{
-						// One-liner error of range
-						change_command_oneliner(all_lines, changed, trimmed_whole_without_command, 1, int(all_lines.size()));
-						continue;
-					}
-				}
-				else
-				{
-					if (range_extractor(first_token, first_line, last_line))
-					{
-						if (first_line == -1)
-						{
-							first_line = 1;
-						}
-
-						if (last_line == -1)
-						{
-							last_line = int(all_lines.size());
-						}
-					}
-					else
-					{
-						std::cout << "Invalid range" << std::endl;
-						continue;
-					}
-
-					if (command_letter == "p")
-					{
-						print_command(all_lines, first_line, last_line);
-						continue;
-					}
-
-					if (command_letter == "d")
-					{
-						if (first_line == 0)
-						{
-							std::cout << "Invalid range" << std::endl;
-							continue;
-						}
-						delete_command(all_lines, changed, first_line, last_line);
-						continue;
-					}
-				}
+			if (command_letter == "a")
+			{
+				append_handler(all_lines, changed, command_and_range_only, first_token, other_tokens, trimmed_whole_without_command);
+			}
+			else if (command_letter == "c")
+			{
+				change_handler(all_lines, changed, command_and_range_only, first_token, other_tokens, trimmed_whole_without_command);
+			}
+			else if (command_and_range_only && (command_letter == "p" || command_letter == "d"))
+			{
+				print_delete_handler(all_lines, changed, first_token, command_letter);
+			}
+			else
+			{
 				std::cout << "Unsupported command" << std::endl;
 			}
 		}
@@ -504,11 +545,10 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 
 int main()
 {
-	//std::string path;
-	std::string path{ "Example_2.txt" };
+	//std::string path{ "Example_2.txt" };
 
-	//std::cin >> path;
-	logger(path);
+	std::string path;
+	std::getline(std::cin, path);
 
 	std::vector<std::string> all_lines;
 
@@ -517,19 +557,13 @@ int main()
 		std::ofstream ofs = open_out_stram(path);
 		if (!ofs.is_open())
 		{
-			fails("Not opened output", "main");
+			std::cout << "Unable to open file" << std::endl;
+			return 1;
 		}
 		ofs.close();
 	} 
 
 	read_command(all_lines, path);
-
-	//for (size_t i = 0; i < all_lines.size(); i++)
-	//{
-	//	std::cout << all_lines[i] << std::endl;
-	//}
-
-
 
 	return 0;
 }

@@ -187,7 +187,8 @@ bool range_extractor(const std::string& token, int& first_line, int& last_line)
 
 void print_command(std::vector<std::string>& all_lines, int start, int end)
 {
-	for (size_t i = start - 1; i < size_t(end); i++)
+	size_t start_convert = (size_t)start - 1;
+	for (size_t i = start_convert; i < size_t(end); i++)
 	{
 		if (i < all_lines.size())
 		{
@@ -290,7 +291,9 @@ void delete_command(std::vector<std::string>& all_lines, bool& changed, int star
 
 	if (start2 < all_lines.size())
 	{
-		all_lines.erase(all_lines.begin() + start2, all_lines.begin() + end2);
+		auto it_start = all_lines.begin() + start2;
+		auto it_end = all_lines.begin() + end2;
+		all_lines.erase(it_start, it_end);
 		changed = true;
 	}
 }

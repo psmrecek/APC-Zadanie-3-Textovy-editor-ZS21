@@ -546,12 +546,17 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 	}
 }
 
-int main()
+int main(int argc, char* argv[])
 {
 	//std::string path{ "Example_2.txt" };
 
-	std::string path;
-	std::getline(std::cin, path);
+	if (argc != 2)
+	{
+		std::cout << "Invalid number of arguments" << std::endl;
+		return 2;
+	}
+
+	std::string path{ argv[1] };
 
 	std::vector<std::string> all_lines;
 

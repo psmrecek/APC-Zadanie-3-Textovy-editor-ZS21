@@ -216,7 +216,7 @@ void append_command_oneliner(std::vector<std::string>& all_lines, bool& changed,
 		}
 
 		auto iterator = all_lines.begin() + line_num;
-
+		changed = true;
 		iterator = all_lines.insert(iterator, line) + 1;
 	}
 }
@@ -421,6 +421,7 @@ void print_delete_handler(std::vector<std::string>& all_lines, bool& changed, st
 	else
 	{
 		std::cout << "Invalid range" << std::endl;
+		return;
 	}
 
 	if (command_letter == "p")

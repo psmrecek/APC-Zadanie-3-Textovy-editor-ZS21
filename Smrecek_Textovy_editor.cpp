@@ -133,7 +133,6 @@ bool line_number_extractor(const std::string& token, int& first_line, int& last_
 
 	if (regex_match(token, case5))
 	{
-		//std::cout << token << std::endl;
 		first_line = dummy_to_int_convertor(token);
 		last_line = dummy_to_int_convertor(token);
 		return first_line >= 0 && first_line == last_line;
@@ -663,8 +662,6 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 /// <returns></returns>
 int main(int argc, char* argv[])
 {
-	//std::string path{ "Example_2.txt" };
-
 	if (argc != 2)
 	{
 		std::cout << "Invalid number of arguments" << std::endl;

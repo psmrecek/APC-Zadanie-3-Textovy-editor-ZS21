@@ -35,6 +35,12 @@ std::string trim(const std::string& s)
 	return ltrim(rtrim(s));
 }
 
+/// <summary>
+/// Function to load the whole file into memory.
+/// </summary>
+/// <param name="path"></param>
+/// <param name="all_lines"></param>
+/// <returns></returns>
 bool read_file(const std::string& path, std::vector<std::string>& all_lines)
 {
 	std::ifstream ifs{ path };
@@ -64,6 +70,11 @@ bool read_file(const std::string& path, std::vector<std::string>& all_lines)
 	}
 }
 
+/// <summary>
+/// Opens the output stream.
+/// </summary>
+/// <param name="path"></param>
+/// <returns></returns>
 std::ofstream open_out_stram(const std::string& path)
 {
 	std::ofstream ofs{ path };
@@ -71,6 +82,12 @@ std::ofstream open_out_stram(const std::string& path)
 	return ofs;
 }
 
+/// <summary>
+/// Function for range check.
+/// </summary>
+/// <param name="first_line"></param>
+/// <param name="last_line"></param>
+/// <returns></returns>
 bool dummy_range_check(const int& first_line, const int& last_line)
 {
 	bool simple_check = ((first_line != -2) && (last_line != -2) && (first_line != 0) && (last_line != 0));
@@ -84,6 +101,11 @@ bool dummy_range_check(const int& first_line, const int& last_line)
 	}
 }
 
+/// <summary>
+/// Convert number to int if possible.
+/// </summary>
+/// <param name="str_num"></param>
+/// <returns></returns>
 int dummy_to_int_convertor(const std::string& str_num)
 {
 	int number = -2;
@@ -98,6 +120,13 @@ int dummy_to_int_convertor(const std::string& str_num)
 	}
 }
 
+/// <summary>
+/// Extract number for append command.
+/// </summary>
+/// <param name="token"></param>
+/// <param name="first_line"></param>
+/// <param name="last_line"></param>
+/// <returns></returns>
 bool line_number_extractor(const std::string& token, int& first_line, int& last_line)
 {
 	std::regex case5(R"([0-9]+)");
@@ -115,21 +144,20 @@ bool line_number_extractor(const std::string& token, int& first_line, int& last_
 	return false;
 }
 
+/// <summary>
+/// Extract possible ranges for multiple commands.
+/// </summary>
+/// <param name="token"></param>
+/// <param name="first_line"></param>
+/// <param name="last_line"></param>
+/// <returns></returns>
 bool range_extractor(const std::string& token, int& first_line, int& last_line)
 {
-	// What about negative numbers?
-
 	std::regex case1(R"(,)");
 	std::regex case2(R"(,[0-9]+)");
 	std::regex case3(R"([0-9]+,)");
 	std::regex case4(R"([0-9]+,[0-9]+)");
 	std::regex case5(R"([0-9]+)");
-
-	//std::cout << "case1 " << regex_match(token, case1) << std::endl;
-	//std::cout << "case2 " << regex_match(token, case2) << std::endl;
-	//std::cout << "case3 " << regex_match(token, case3) << std::endl;
-	//std::cout << "case4 " << regex_match(token, case4) << std::endl;
-	//std::cout << "case5 " << regex_match(token, case5) << std::endl;
 
 	size_t delimeter_pos = token.find(',');
 
@@ -143,7 +171,6 @@ bool range_extractor(const std::string& token, int& first_line, int& last_line)
 	if (regex_match(token, case2))
 	{
 		std::string last = token.substr(delimeter_pos + 1, token.size());
-		//std::cout << last << std::endl;
 
 		first_line = -1;
 		last_line = dummy_to_int_convertor(last);
@@ -153,7 +180,6 @@ bool range_extractor(const std::string& token, int& first_line, int& last_line)
 	if (regex_match(token, case3))
 	{
 		std::string first = token.substr(0, delimeter_pos);
-		//std::cout << first << std::endl;
 
 		first_line = dummy_to_int_convertor(first);
 		last_line = -1;
@@ -163,9 +189,7 @@ bool range_extractor(const std::string& token, int& first_line, int& last_line)
 	if (regex_match(token, case4))
 	{
 		std::string first = token.substr(0, delimeter_pos);
-		//std::cout << first << std::endl;
 		std::string last = token.substr(delimeter_pos + 1, token.size());
-		//std::cout << last << std::endl;
 
 		first_line = dummy_to_int_convertor(first);
 		last_line = dummy_to_int_convertor(last);
@@ -174,7 +198,6 @@ bool range_extractor(const std::string& token, int& first_line, int& last_line)
 
 	if (regex_match(token, case5))
 	{
-		//std::cout << token << std::endl;
 		first_line = dummy_to_int_convertor(token);
 		last_line = dummy_to_int_convertor(token);
 		return dummy_range_check(first_line, last_line);
@@ -185,6 +208,12 @@ bool range_extractor(const std::string& token, int& first_line, int& last_line)
 	return dummy_range_check(first_line, last_line);
 }
 
+/// <summary>
+/// Command p.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="start"></param>
+/// <param name="end"></param>
 void print_command(std::vector<std::string>& all_lines, int start, int end)
 {
 	size_t start_convert = (size_t)start - 1;
@@ -197,6 +226,13 @@ void print_command(std::vector<std::string>& all_lines, int start, int end)
 	}
 }
 
+/// <summary>
+/// Oneliner version of command a.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="line"></param>
+/// <param name="line_num"></param>
 void append_command_oneliner(std::vector<std::string>& all_lines, bool& changed, std::string& line, int line_num = -1)
 {
 	if (line_num == -1)
@@ -221,6 +257,12 @@ void append_command_oneliner(std::vector<std::string>& all_lines, bool& changed,
 	}
 }
 
+/// <summary>
+/// Cammand a.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="line_num"></param>
 void append_command(std::vector<std::string>& all_lines, bool& changed, int line_num = -1)
 {
 	if (line_num == -1)
@@ -260,6 +302,13 @@ void append_command(std::vector<std::string>& all_lines, bool& changed, int line
 	}
 }
 
+/// <summary>
+/// Command w.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="path"></param>
+/// <returns></returns>
 bool write_command(std::vector<std::string>& all_lines, bool& changed, const std::string& path)
 {
 	std::ofstream ofs = open_out_stram(path);
@@ -279,6 +328,13 @@ bool write_command(std::vector<std::string>& all_lines, bool& changed, const std
 	return true;
 }
 
+/// <summary>
+/// Command d.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="start"></param>
+/// <param name="end"></param>
 void delete_command(std::vector<std::string>& all_lines, bool& changed, int start, int end)
 {
 	size_t start2 = (size_t)start - 1;
@@ -298,18 +354,40 @@ void delete_command(std::vector<std::string>& all_lines, bool& changed, int star
 	}
 }
 
+/// <summary>
+/// Oneliner version of command c.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="line"></param>
+/// <param name="start"></param>
+/// <param name="end"></param>
 void change_command_oneliner(std::vector<std::string>& all_lines, bool& changed, std::string& line, int start, int end)
 {
 	delete_command(all_lines, changed, start, end);
 	append_command_oneliner(all_lines, changed, line, start - 1);
 }
 
+/// <summary>
+/// Command c.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="start"></param>
+/// <param name="end"></param>
 void change_command(std::vector<std::string>& all_lines, bool& changed, int start, int end)
 {
 	delete_command(all_lines, changed, start, end);
 	append_command(all_lines, changed, start - 1);
 }
 
+/// <summary>
+/// Handler for one letter comands a p d c.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="lr_trimmed_whole"></param>
+/// <returns></returns>
 bool one_character_commands_handler(std::vector<std::string>& all_lines, bool& changed, std::string& lr_trimmed_whole)
 {
 	if (lr_trimmed_whole == "a")
@@ -336,6 +414,15 @@ bool one_character_commands_handler(std::vector<std::string>& all_lines, bool& c
 	return false;
 }
 
+/// <summary>
+/// Handler for command a.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="command_and_range_only"></param>
+/// <param name="first_token"></param>
+/// <param name="other_tokens"></param>
+/// <param name="trimmed_whole_without_command"></param>
 void append_handler(std::vector<std::string>& all_lines, bool& changed, bool command_and_range_only, std::string& first_token, std::string& other_tokens, std::string& trimmed_whole_without_command)
 {
 	// -1 = whole file
@@ -362,6 +449,15 @@ void append_handler(std::vector<std::string>& all_lines, bool& changed, bool com
 	}
 }
 
+/// <summary>
+/// Handler for command c.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="command_and_range_only"></param>
+/// <param name="first_token"></param>
+/// <param name="other_tokens"></param>
+/// <param name="trimmed_whole_without_command"></param>
 void change_handler(std::vector<std::string>& all_lines, bool& changed, bool command_and_range_only, std::string& first_token, std::string& other_tokens, std::string& trimmed_whole_without_command)
 {
 
@@ -399,6 +495,13 @@ void change_handler(std::vector<std::string>& all_lines, bool& changed, bool com
 	}
 }
 
+/// <summary>
+/// Handler for commands p d.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="changed"></param>
+/// <param name="first_token"></param>
+/// <param name="command_letter"></param>
 void print_delete_handler(std::vector<std::string>& all_lines, bool& changed, std::string& first_token, std::string& command_letter)
 {
 	// -1 = whole file
@@ -435,6 +538,11 @@ void print_delete_handler(std::vector<std::string>& all_lines, bool& changed, st
 	}
 }
 
+/// <summary>
+/// Function for reading commands from input. Deciding which command handler call. Handling q and q! commands.
+/// </summary>
+/// <param name="all_lines"></param>
+/// <param name="path"></param>
 void read_command(std::vector<std::string>& all_lines, const std::string& path)
 {
 	bool changed = false;
@@ -547,6 +655,12 @@ void read_command(std::vector<std::string>& all_lines, const std::string& path)
 	}
 }
 
+/// <summary>
+/// Main function of program. Function reads the file or creates a non-existent file and calls the command processing function. 
+/// </summary>
+/// <param name="argc"></param>
+/// <param name="argv"></param>
+/// <returns></returns>
 int main(int argc, char* argv[])
 {
 	//std::string path{ "Example_2.txt" };
@@ -561,6 +675,7 @@ int main(int argc, char* argv[])
 
 	std::vector<std::string> all_lines;
 
+	// Read file. Check if file is read, if not, try to open it for write. If file did not exist, it was created.
 	if (!read_file(path, all_lines))
 	{
 		std::ofstream ofs = open_out_stram(path);

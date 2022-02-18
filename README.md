@@ -1,5 +1,7 @@
 # APC-Zadanie-3-Textovy-editor-ZS21
 
+Oficiálny text zadania (Koscelanský).
+
 Vytvorte textový editor ktorý funguje na princípe command a response.
 
 Pri spustení dostane na vstup argument – meno súboru. Ak súbor neexistuje, tak ho vytvoríte. Súbor môžete spracovávať tak, že si ho celý uložíťe do pamäte.
@@ -7,13 +9,13 @@ Pri spustení dostane na vstup argument – meno súboru. Ak súbor neexistuje, 
 Editor pracuje v dvoch režímoch, buď od používateľa očakáva príkaz, alebo vstup. Rozdiel môžete vidieť na nasledujúcom priklade.  Ak chceme na koniec súboru pripísať dva riadky, spravíme to nasledovne.
 
 
-user@bts:/home/$ editor.exe email.txt
-* a
-Prvy riadok <Enter>
-Druhy riadok <Enter>
-. <Enter>
-* w
-* q
+    user@bts:/home/$ editor.exe email.txt
+    * a
+    Prvy riadok <Enter>
+    Druhy riadok <Enter>
+    . <Enter>
+    * w
+    * q
 V prvom riadku sme spustili program a otvorili súbor email.txt
 
 V druhom od nás program požadoval príkaz (to je vidieť podľa hviezdičky, ktorou je identifikovaný príkazový mód, túto hviezdičku a za ňou medzeru musíte vypísať vy), v tomto prípade to bol append a.
@@ -108,9 +110,9 @@ Pozor na to, že používateľ môže ale aj nemusí definovať rozsah.
 Napr.
 
 
-* a 12 ahoj
+     * a 12 ahoj
 Vloží medzi riadky 12 a 13 riadok ahoj, zatiaľ čo
 
 
-* a 12aa
+     * a 12aa
 Zapíše na koniec riadok 12aa
